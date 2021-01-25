@@ -66,33 +66,30 @@ void nonLocalMean::processor(){
 
 	cv::Mat tmp;
 
-	for (int row = dnInfo.serachWinRadius; row < imageInfo.rows - dnInfo.serachWinRadius; row ++)
+	for (int row = dnInfo.serachWinRadius; row < imageInfo.rows - dnInfo.searchWin ; row++)
 	{
-		for (int col = dnInfo.serachWinRadius; col < imageInfo.cols - dnInfo.serachWinRadius; col++)
+		for (int col = dnInfo.serachWinRadius; col < imageInfo.cols - dnInfo.searchWin; col++)
 		{
 			int bRow = row - dnInfo.serachWinRadius;//row - 10
 			int bCol = col - dnInfo.serachWinRadius;//col - 10
-			cv::Mat curArea = imageInfo.srcImgGray(cv::Rect(row - dnInfo.curWinRadius, col - dnInfo.curWinRadius,dnInfo.curWin,dnInfo.curWin));
+			//printf("%d,%d,%d,%d\n", row - dnInfo.curWinRadius, col - dnInfo.curWinRadius, dnInfo.curWin, dnInfo.curWin);
+			cv::Mat curArea = imageInfo.srcImgGray(cv::Rect(col - dnInfo.curWinRadius, row - dnInfo.curWinRadius, dnInfo.curWin, dnInfo.curWin));
 			float vSum = 0.0f;
 			float wtSum = 0.0f;
 			float tmp1 = 0.0f;
-			for(int subRow = bRow;subRow <= (bRow + dnInfo.curWinRadius + dnInfo.serachWinRadius + 1);subRow ++ )
+			for (int subRow = bRow; subRow <= (bRow + dnInfo.curWinRadius + dnInfo.serachWinRadius + 1); subRow++)
 				for (int subCol = bCol; subCol <= (bCol + dnInfo.curWinRadius + dnInfo.serachWinRadius + 1); subCol++)
 				{
-					cv::Mat searchArea = imageInfo.srcImgGray(cv::Rect(subRow, subCol, dnInfo.curWin, dnInfo.curWin));
+					cv::Mat searchArea = imageInfo.srcImgGray(cv::Rect(subCol,subRow, dnInfo.curWin, dnInfo.curWin));
 					tmp = searchArea - curArea;
 					tmp1 = tmp.dot(tmp);
-					tmp1 = exp(- tmp1 / (dnInfo.sigma * dnInfo.sigma));
+					tmp1 = sqrt(tmp1);
+					tmp1 = exp(-tmp1 / (dnInfo.sigma * dnInfo.sigma));
 					wtSum += tmp1;
-					
-
-					
-
-
+					vSum += tmp1 * imageInfo.srcImgGray.at<float>(subRow + dnInfo.curWinRadius, subCol + dnInfo.curWinRadius);									   					 				  
 				}
-			
-
-		}
+			imageInfo.dstImgGray.at<float>(row, col) = vSum / wtSum;
+		}		
 	}
 }
 
